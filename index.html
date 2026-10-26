@@ -1264,6 +1264,8 @@ button.row:active,.row.tap:active{background:var(--fill)}
 .ar-btns [data-stop]{background:rgba(255,255,255,.18);font-weight:600;font-size:18px;padding:14px 54px;border-radius:40px;color:#fff}
 .alarm-ring.on b{animation:arshake .9s ease-in-out infinite}
 @keyframes arshake{0%,100%{transform:none}20%{transform:rotate(-2deg)}40%{transform:rotate(2deg)}60%{transform:rotate(-1deg)}}
+html,body{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}
+
 
 </style>
 <div id="stage">
@@ -2259,7 +2261,10 @@ const System = {
     Sys.on('*', (k) => { StatusBar.render(); if (CC.open) CC.render(); if (k === 'appearance') this.applyAppearance(); if (k === 'wallpaper') this.applyWallpaper(); if (k === 'brightness') Dim.apply(); });
     matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => this.applyAppearance());
     UI.layout(); addEventListener('resize', () => { UI.layout(); Home.goPage(Home.page, false); });
-    if (window.visualViewport) visualViewport.addEventListener('resize', () => UI.layout());
+    if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (Math.abs(innerWidth - (UI._lw || 0)) > 2) { UI._lw = innerWidth; UI.layout(); } });
+    /* keep the phone frame still when the on-screen keyboard opens */
+    window.addEventListener('scroll', () => { if (scrollX || scrollY) scrollTo(0, 0); }, { passive: true });
+    document.addEventListener('focusin', () => setTimeout(() => { scrollTo(0, 0); document.querySelectorAll('#stage,#devwrap,#device').forEach(e => { e.scrollTop = 0; e.scrollLeft = 0; }); }, 60));
     if (typeof ASSETS !== 'undefined' && ASSETS.wall) { const st = document.createElement('style'); st.textContent = `.wp5{background:url('${ASSETS.wall}') center/cover #c9c9c9}`; document.head.append(st); }
     this.applyAppearance(); Dim.apply();
     Home.render(); Lock.render(); Passcode.render(); NC.wire(); CC.wire(); Call.wire(); Gestures.init();
